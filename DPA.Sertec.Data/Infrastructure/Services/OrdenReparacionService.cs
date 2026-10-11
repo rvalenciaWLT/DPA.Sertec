@@ -5,17 +5,9 @@ using DPA.Sertec.Data.Infrastructure.Entities;
 
 namespace DPA.Sertec.Data.Infrastructure.Services;
 
-/// <summary>
-/// Capa intermedia entre el controlador y el repositorio.
-/// Concentra las reglas de negocio y el mapeo entidad -> DTO, de modo que:
-///   - el controlador queda delgado (solo traduce resultados a HTTP),
-///   - el repositorio queda limpio (solo persistencia),
-///   - las reglas se pueden probar sin levantar la Web API.
-/// Depende de IOrdenReparacionRepository (abstraccion), no de la clase concreta.
-/// </summary>
 public class OrdenReparacionService : IOrdenReparacionService
 {
-    /// <summary>Debe mantenerse alineado con CK_OrdenReparacion_Estado en la base de datos.</summary>
+    // Debe mantenerse alineado con CK_OrdenReparacion_Estado.
     private static readonly string[] EstadosValidos =
         ["Pendiente", "EnProceso", "Reparado", "Entregado", "Cancelado"];
 
@@ -49,7 +41,6 @@ public class OrdenReparacionService : IOrdenReparacionService
 
         var orden = new OrdenReparacion
         {
-            // Si el cliente no manda fecha, se registra el momento del ingreso.
             FechaIngreso = TruncarASegundos(dto.FechaIngreso ?? DateTime.Now),
             DescripcionProblema = dto.DescripcionProblema.Trim(),
             CostoEstimado = dto.CostoEstimado,
@@ -60,7 +51,6 @@ public class OrdenReparacionService : IOrdenReparacionService
 
         await _repository.AddAsync(orden);
 
-        // Se relee para traer Equipo, Cliente y TipoReparacion ya materializados.
         var creada = await _repository.GetByIdAsync(orden.Id);
 
         return ServiceResult<OrdenReparacionDto>.Ok(MapToDto(creada!));
@@ -99,8 +89,6 @@ public class OrdenReparacionService : IOrdenReparacionService
         if (orden is null)
             return ServiceResult<bool>.NotFound($"No existe la orden de reparacion con Id {id}.");
 
-        // REGLA DE NEGOCIO: una orden ya entregada al cliente es un registro historico
-        // y no puede borrarse. Para anularla se debe pasar su estado a 'Cancelado'.
         if (string.Equals(orden.Estado, "Entregado", StringComparison.OrdinalIgnoreCase))
             return ServiceResult<bool>.Conflict($"La orden {id} ya fue entregada y no puede eliminarse. Cambie su estado a 'Cancelado' si desea anularla.");
 
@@ -109,11 +97,6 @@ public class OrdenReparacionService : IOrdenReparacionService
         return ServiceResult<bool>.Ok(true);
     }
 
-    /// <summary>
-    /// Valida el estado contra el catalogo y comprueba que las claves foraneas existan,
-    /// para responder 400 con un mensaje claro en vez de dejar que SQL Server lance un 500.
-    /// Devuelve null si todo es valido.
-    /// </summary>
     private async Task<string?> ValidarReferenciasAsync(string estado, int equipoId, int tipoReparacionId)
     {
         if (!EstadosValidos.Contains(estado?.Trim(), StringComparer.OrdinalIgnoreCase))
@@ -128,11 +111,8 @@ public class OrdenReparacionService : IOrdenReparacionService
         return null;
     }
 
-    /// <summary>
-    /// La columna FechaIngreso es DATETIME2(0): SQL Server redondea a segundos.
-    /// Si no truncamos aqui, la respuesta del POST traeria milisegundos que el
-    /// GET posterior ya no devolveria, y los datos se verian inconsistentes.
-    /// </summary>
+    // FechaIngreso es DATETIME2(0): sin truncar, la respuesta del POST traeria
+    // milisegundos que el GET posterior ya no devuelve.
     private static DateTime TruncarASegundos(DateTime fecha) =>
         new(fecha.Year, fecha.Month, fecha.Day, fecha.Hour, fecha.Minute, fecha.Second, fecha.Kind);
 

@@ -2,14 +2,8 @@ using System.ComponentModel.DataAnnotations;
 
 namespace DPA.Sertec.Data.Core.DTOs;
 
-/// <summary>
-/// DTO de ESCRITURA para crear una orden.
-/// No expone Id (lo genera SQL Server con IDENTITY) ni propiedades de navegacion,
-/// asi el cliente no puede inyectar datos que no le corresponden (over-posting).
-/// </summary>
 public class OrdenReparacionCreateDto
 {
-    /// <summary>Opcional: si no se envia, se usa la fecha y hora actual.</summary>
     public DateTime? FechaIngreso { get; set; }
 
     [Required(ErrorMessage = "La descripcion del problema es obligatoria.")]
@@ -19,7 +13,6 @@ public class OrdenReparacionCreateDto
     [Range(0, 999999.99, ErrorMessage = "El costo estimado no puede ser negativo.")]
     public decimal CostoEstimado { get; set; }
 
-    /// <summary>Pendiente | EnProceso | Reparado | Entregado | Cancelado.</summary>
     [Required(ErrorMessage = "El estado es obligatorio.")]
     [StringLength(20)]
     public string Estado { get; set; } = "Pendiente";

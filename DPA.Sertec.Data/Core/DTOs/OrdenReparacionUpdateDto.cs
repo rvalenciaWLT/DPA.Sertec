@@ -2,10 +2,6 @@ using System.ComponentModel.DataAnnotations;
 
 namespace DPA.Sertec.Data.Core.DTOs;
 
-/// <summary>
-/// DTO de ESCRITURA para actualizar una orden existente.
-/// Incluye Id para poder validar que coincida con el de la ruta.
-/// </summary>
 public class OrdenReparacionUpdateDto
 {
     [Range(1, int.MaxValue)]

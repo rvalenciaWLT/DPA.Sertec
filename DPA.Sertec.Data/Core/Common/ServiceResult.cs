@@ -1,10 +1,5 @@
 namespace DPA.Sertec.Data.Core.Common;
 
-/// <summary>
-/// Resultado posible de una operacion de negocio.
-/// Deliberadamente NO usa codigos HTTP: la capa de servicio no debe saber
-/// que vive detras de una Web API. El controlador es quien traduce.
-/// </summary>
 public enum ServiceStatus
 {
     Ok,
@@ -13,10 +8,6 @@ public enum ServiceStatus
     Conflict
 }
 
-/// <summary>
-/// Envoltorio que transporta el resultado de la capa de servicio hacia el controlador.
-/// Evita usar excepciones para controlar el flujo normal de la aplicacion.
-/// </summary>
 public class ServiceResult<T>
 {
     public ServiceStatus Status { get; private init; }
