@@ -164,7 +164,7 @@ En una Clean Architecture estricta esa dependencia estaría invertida: las entid
 | **P1 — Base de datos** | Redacción del script `SertecDB.sql`, incluyendo la elección de tipos (`DECIMAL(10,2)` para importes), restricciones `UNIQUE`/`CHECK`, índices sobre las FK y los datos de prueba. |
 | **P2 — Estructura** | Comandos `dotnet new classlib`, `dotnet sln add` y `dotnet add reference`, y la organización de carpetas `Core`/`Infrastructure`. |
 | **P3 — Scaffolding** | **Diagnóstico del error** `DPA.Sertec.API.dll not found`: la IA identificó que era un problema de resolución del proyecto de inicio y propuso `-StartupProject`. También sugirió `--no-onconfiguring` para no dejar la contraseña en el código. |
-| **P4 y P5 — Controladores** | Generación del código de controladores, repositorio, servicio, DTOs e interfaces, con los comentarios explicativos. |
+| **P4 y P5 — Controladores** | Generación del código de controladores, repositorio, servicio, DTOs e interfaces. |
 | **P6 — Postman** | Generación de la colección JSON con los 23 requests y sus tests automáticos. |
 | **P7 — Este documento** | Redacción a partir de lo que realmente ocurrió durante el desarrollo. |
 
