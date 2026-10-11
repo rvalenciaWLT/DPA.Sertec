@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="DPA.Sertec.API/DPA.Sertec.API.csproj" />
+  <Project Path="DPA.Sertec.Data/DPA.Sertec.Data.csproj" />
+</Solution>

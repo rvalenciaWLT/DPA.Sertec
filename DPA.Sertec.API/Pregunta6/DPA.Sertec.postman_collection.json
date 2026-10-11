@@ -1,0 +1,802 @@
+{
+  "info": {
+    "_postman_id": "a7f3c1d2-9b64-4e58-8c31-5d0e7a2b6f49",
+    "name": "DPA.Sertec - Practica Calificada 01",
+    "description": "Coleccion de pruebas para la Practica Calificada 01 (Desarrollo de ambiente web).\n\nCubre los dos controladores:\n- **Pregunta 4**: TipoReparacion, con inyeccion directa del DbContext.\n- **Pregunta 5**: OrdenReparacion, con patron Repository + capa de servicio.\n\nCada request incluye tests automaticos (pestania Tests) que validan el codigo de estado y el contenido de la respuesta. Ejecutar con el Collection Runner de arriba hacia abajo: algunos requests guardan Ids en variables de coleccion que los siguientes reutilizan.\n\nRequisito previo: la API corriendo en http://localhost:5030 (perfil http) y la base de datos SertecDB creada con el script Database/SertecDB.sql.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:5030", "type": "string" },
+    { "key": "nuevoTipoId", "value": "", "type": "string" },
+    { "key": "nuevaOrdenId", "value": "", "type": "string" }
+  ],
+  "item": [
+    {
+      "name": "Pregunta 4 - TipoReparacion (DbContext directo)",
+      "description": "Controlador autogenerado: el acceso a datos ocurre dentro del propio controlador mediante el DbContext inyectado.",
+      "item": [
+        {
+          "name": "01 GET - Listar todos los tipos de reparacion",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 200 OK', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Devuelve un arreglo con al menos un registro', function () {",
+                  "    const data = pm.response.json();",
+                  "    pm.expect(data).to.be.an('array');",
+                  "    pm.expect(data.length).to.be.above(0);",
+                  "});",
+                  "",
+                  "pm.test('Cada tipo trae Id, Nombre y PrecioBase', function () {",
+                  "    const primero = pm.response.json()[0];",
+                  "    pm.expect(primero).to.have.property('id');",
+                  "    pm.expect(primero).to.have.property('nombre');",
+                  "    pm.expect(primero).to.have.property('precioBase');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/TipoReparacion",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "TipoReparacion"]
+            },
+            "description": "Lista completa del catalogo de tipos de reparacion."
+          },
+          "response": []
+        },
+        {
+          "name": "02 GET - Obtener tipo de reparacion por Id",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 200 OK', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Devuelve el registro solicitado', function () {",
+                  "    pm.expect(pm.response.json().id).to.eql(1);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/TipoReparacion/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "TipoReparacion", "1"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "03 GET - Id inexistente devuelve 404",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 404 Not Found', function () {",
+                  "    pm.response.to.have.status(404);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/TipoReparacion/999",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "TipoReparacion", "999"]
+            },
+            "description": "Caso negativo: el controlador responde 404 en vez de 500 o una respuesta vacia."
+          },
+          "response": []
+        },
+        {
+          "name": "04 POST - Crear tipo de reparacion",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 201 Created', function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "",
+                  "pm.test('Incluye la cabecera Location', function () {",
+                  "    pm.expect(pm.response.headers.has('Location')).to.be.true;",
+                  "});",
+                  "",
+                  "pm.test('El Id fue autogenerado por SQL Server', function () {",
+                  "    pm.expect(pm.response.json().id).to.be.above(0);",
+                  "});",
+                  "",
+                  "pm.collectionVariables.set('nuevoTipoId', pm.response.json().id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Reparacion de placa madre\",\n  \"precioBase\": 450.00\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/TipoReparacion",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "TipoReparacion"]
+            },
+            "description": "No se envia Id: la columna es IDENTITY y la base de datos lo autogenera."
+          },
+          "response": []
+        },
+        {
+          "name": "05 POST - Nombre duplicado devuelve 409",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 409 Conflict', function () {",
+                  "    pm.response.to.have.status(409);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Reparacion de placa madre\",\n  \"precioBase\": 450.00\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/TipoReparacion",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "TipoReparacion"]
+            },
+            "description": "Choca contra la restriccion UQ_TipoReparacion_Nombre. El controlador captura DbUpdateException y responde 409 en lugar de dejar escapar un 500."
+          },
+          "response": []
+        },
+        {
+          "name": "06 PUT - Actualizar tipo de reparacion",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 204 No Content', function () {",
+                  "    pm.response.to.have.status(204);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id\": {{nuevoTipoId}},\n  \"nombre\": \"Reparacion de placa madre\",\n  \"precioBase\": 520.00\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/TipoReparacion/{{nuevoTipoId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "TipoReparacion", "{{nuevoTipoId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "07 PUT - Id de ruta distinto al del cuerpo devuelve 400",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 400 Bad Request', function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id\": 99,\n  \"nombre\": \"Inconsistente\",\n  \"precioBase\": 10.00\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/TipoReparacion/{{nuevoTipoId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "TipoReparacion", "{{nuevoTipoId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "08 GET - Verificar que el PUT se persistio",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 200 OK', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('El precio base quedo en 520.00', function () {",
+                  "    pm.expect(Number(pm.response.json().precioBase)).to.eql(520);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/TipoReparacion/{{nuevoTipoId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "TipoReparacion", "{{nuevoTipoId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "09 DELETE - Eliminar tipo de reparacion",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 204 No Content', function () {",
+                  "    pm.response.to.have.status(204);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/TipoReparacion/{{nuevoTipoId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "TipoReparacion", "{{nuevoTipoId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "10 DELETE - Tipo con ordenes asociadas devuelve 409",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 409 Conflict', function () {",
+                  "    pm.response.to.have.status(409);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/TipoReparacion/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "TipoReparacion", "1"]
+            },
+            "description": "El tipo 1 esta referenciado por FK_OrdenReparacion_TipoReparacion. Se responde 409 con un mensaje entendible en lugar de un 500 con el error crudo de SQL Server."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Pregunta 5 - OrdenReparacion (Repository + Service)",
+      "description": "Controlador que solo depende de IOrdenReparacionService. La logica de negocio vive en Infrastructure/Services y el acceso a datos en Infrastructure/Repositories.",
+      "item": [
+        {
+          "name": "01 GET - Listar todas las ordenes",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 200 OK', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Devuelve un arreglo con registros', function () {",
+                  "    const data = pm.response.json();",
+                  "    pm.expect(data).to.be.an('array');",
+                  "    pm.expect(data.length).to.be.above(0);",
+                  "});",
+                  "",
+                  "pm.test('El DTO aplana las relaciones (equipo, cliente y tipo)', function () {",
+                  "    const primera = pm.response.json()[0];",
+                  "    pm.expect(primera).to.have.property('equipoDescripcion');",
+                  "    pm.expect(primera).to.have.property('clienteNombreCompleto');",
+                  "    pm.expect(primera).to.have.property('tipoReparacionNombre');",
+                  "});",
+                  "",
+                  "pm.test('El DTO no expone propiedades de navegacion de EF', function () {",
+                  "    const primera = pm.response.json()[0];",
+                  "    pm.expect(primera).to.not.have.property('equipo');",
+                  "    pm.expect(primera).to.not.have.property('tipoReparacion');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/OrdenReparacion",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "OrdenReparacion"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "02 GET - Obtener orden por Id",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 200 OK', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Devuelve la orden solicitada', function () {",
+                  "    pm.expect(pm.response.json().id).to.eql(1);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/OrdenReparacion/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "OrdenReparacion", "1"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "03 GET - Id inexistente devuelve 404",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 404 Not Found', function () {",
+                  "    pm.response.to.have.status(404);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/OrdenReparacion/999",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "OrdenReparacion", "999"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "04 POST - Crear orden de reparacion",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 201 Created', function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "",
+                  "pm.test('Incluye la cabecera Location', function () {",
+                  "    pm.expect(pm.response.headers.has('Location')).to.be.true;",
+                  "});",
+                  "",
+                  "pm.test('Devuelve el DTO con los datos relacionados ya resueltos', function () {",
+                  "    const data = pm.response.json();",
+                  "    pm.expect(data.id).to.be.above(0);",
+                  "    pm.expect(data.equipoDescripcion).to.not.be.empty;",
+                  "    pm.expect(data.tipoReparacionNombre).to.not.be.empty;",
+                  "});",
+                  "",
+                  "pm.collectionVariables.set('nuevaOrdenId', pm.response.json().id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"descripcionProblema\": \"El equipo no enciende tras una subida de tension\",\n  \"costoEstimado\": 180.00,\n  \"estado\": \"Pendiente\",\n  \"equipoId\": 3,\n  \"tipoReparacionId\": 3\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/OrdenReparacion",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "OrdenReparacion"]
+            },
+            "description": "Se envia un OrdenReparacionCreateDto. No se envian Id ni FechaIngreso: el Id lo genera SQL Server y la fecha la asigna la capa de servicio."
+          },
+          "response": []
+        },
+        {
+          "name": "05 POST - EquipoId inexistente devuelve 400",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 400 Bad Request', function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});",
+                  "",
+                  "pm.test('El mensaje explica cual FK fallo', function () {",
+                  "    pm.expect(pm.response.text()).to.include('equipo');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"descripcionProblema\": \"Prueba de clave foranea invalida\",\n  \"costoEstimado\": 100.00,\n  \"estado\": \"Pendiente\",\n  \"equipoId\": 999,\n  \"tipoReparacionId\": 1\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/OrdenReparacion",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "OrdenReparacion"]
+            },
+            "description": "La capa de servicio valida la existencia de la FK antes de ir a la base de datos, por eso se obtiene un 400 con mensaje claro y no un 500 de SQL Server."
+          },
+          "response": []
+        },
+        {
+          "name": "06 POST - Estado fuera del catalogo devuelve 400",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 400 Bad Request', function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});",
+                  "",
+                  "pm.test('El mensaje lista los estados permitidos', function () {",
+                  "    pm.expect(pm.response.text()).to.include('Pendiente');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"descripcionProblema\": \"Prueba de estado no permitido\",\n  \"costoEstimado\": 100.00,\n  \"estado\": \"Volando\",\n  \"equipoId\": 1,\n  \"tipoReparacionId\": 1\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/OrdenReparacion",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "OrdenReparacion"]
+            },
+            "description": "Regla de negocio implementada en OrdenReparacionService, alineada con la restriccion CK_OrdenReparacion_Estado de la base de datos."
+          },
+          "response": []
+        },
+        {
+          "name": "07 POST - Descripcion muy corta devuelve 400 (DataAnnotations)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 400 Bad Request', function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});",
+                  "",
+                  "pm.test('Devuelve ValidationProblemDetails con el campo que fallo', function () {",
+                  "    pm.expect(pm.response.json().errors).to.have.property('DescripcionProblema');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"descripcionProblema\": \"ab\",\n  \"costoEstimado\": 100.00,\n  \"estado\": \"Pendiente\",\n  \"equipoId\": 1,\n  \"tipoReparacionId\": 1\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/OrdenReparacion",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "OrdenReparacion"]
+            },
+            "description": "El atributo [ApiController] valida automaticamente las DataAnnotations del DTO y responde 400 antes de entrar al cuerpo de la accion."
+          },
+          "response": []
+        },
+        {
+          "name": "08 PUT - Actualizar orden",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 200 OK', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Devuelve el DTO actualizado', function () {",
+                  "    const data = pm.response.json();",
+                  "    pm.expect(data.estado).to.eql('Reparado');",
+                  "    pm.expect(Number(data.costoEstimado)).to.eql(210);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id\": {{nuevaOrdenId}},\n  \"fechaIngreso\": \"2026-10-11T10:00:00\",\n  \"descripcionProblema\": \"Se confirma fuente quemada, se reemplaza la fuente de poder\",\n  \"costoEstimado\": 210.00,\n  \"estado\": \"Reparado\",\n  \"equipoId\": 3,\n  \"tipoReparacionId\": 3\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/OrdenReparacion/{{nuevaOrdenId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "OrdenReparacion", "{{nuevaOrdenId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "09 PUT - Id de ruta distinto al del cuerpo devuelve 400",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 400 Bad Request', function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id\": 77,\n  \"fechaIngreso\": \"2026-10-11T10:00:00\",\n  \"descripcionProblema\": \"Prueba de identificadores inconsistentes\",\n  \"costoEstimado\": 100.00,\n  \"estado\": \"Pendiente\",\n  \"equipoId\": 1,\n  \"tipoReparacionId\": 1\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/OrdenReparacion/{{nuevaOrdenId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "OrdenReparacion", "{{nuevaOrdenId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "10 PUT - Orden inexistente devuelve 404",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 404 Not Found', function () {",
+                  "    pm.response.to.have.status(404);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id\": 999,\n  \"fechaIngreso\": \"2026-10-11T10:00:00\",\n  \"descripcionProblema\": \"Prueba sobre una orden que no existe\",\n  \"costoEstimado\": 100.00,\n  \"estado\": \"Pendiente\",\n  \"equipoId\": 1,\n  \"tipoReparacionId\": 1\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/OrdenReparacion/999",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "OrdenReparacion", "999"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "11 DELETE - Orden ya entregada devuelve 409 (regla de negocio)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 409 Conflict', function () {",
+                  "    pm.response.to.have.status(409);",
+                  "});",
+                  "",
+                  "pm.test('Explica como anular la orden', function () {",
+                  "    pm.expect(pm.response.text()).to.include('Cancelado');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/OrdenReparacion/5",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "OrdenReparacion", "5"]
+            },
+            "description": "La orden 5 esta en estado Entregado. OrdenReparacionService impide borrarla por tratarse de un registro historico: debe pasarse a Cancelado. La regla vive en la capa de servicio, no en el controlador."
+          },
+          "response": []
+        },
+        {
+          "name": "12 DELETE - Eliminar la orden creada",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 204 No Content', function () {",
+                  "    pm.response.to.have.status(204);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/OrdenReparacion/{{nuevaOrdenId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "OrdenReparacion", "{{nuevaOrdenId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "13 DELETE - Repetir el borrado devuelve 404",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde 404 Not Found', function () {",
+                  "    pm.response.to.have.status(404);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/OrdenReparacion/{{nuevaOrdenId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "OrdenReparacion", "{{nuevaOrdenId}}"]
+            },
+            "description": "Comprueba que el DELETE es idempotente en cuanto al estado final: el recurso ya no existe."
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}
